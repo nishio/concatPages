@@ -33,5 +33,5 @@
 - 他のフィルタリングやソート処理を行いたい場合、`updateTextareaContent()`内でキャッシュされた結果を適宜加工することが可能です。
 
 ## 参考
-- [Scrapbox APIリファレンス](https://scrapbox.io/help-jp/JSON_API)  
+- [Scrapbox APIリファレンス](https://scrapbox.io/help-jp/API)  
 - [Dialog要素 (MDN)](https://developer.mozilla.org/ja/docs/Web/HTML/Element/dialog)
