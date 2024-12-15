@@ -75,64 +75,72 @@ function ensureDialogExists() {
   return dialog;
 }
 
-const projectName = scrapbox.Project.name;
+// グローバル変数としてキャッシュとリンクセット
+let links1hop = [];
+let links2hop = [];
+let projLinks = [];
+let cache = null; // 初回フェッチ後、 {links1hop: {...}, links2hop: {...}, projLinks: {...}} を格納
+let initDone = false; // 初期化済みフラグ
 
-const data = await fetchAllPageData(projectName, scrapbox.Page.title);
-const relatedPages = data.relatedPages || {};
-const links1hop = relatedPages.links1hop.map(({ title }) => ({
-  projectName,
-  title,
-}));
-const links2hop = relatedPages.links2hop.map(({ title }) => ({
-  projectName,
-  title,
-}));
-const projLinks = data.relatedPages.projectLinks1hop.map(
-  ({ projectName, title }) => ({
-    projectName,
-    title,
-  })
-);
+async function initAndShowDialog() {
+  if (!initDone) {
+    const projectName = scrapbox.Project.name;
+    const data = await fetchAllPageData(projectName, scrapbox.Page.title);
+    const relatedPages = data.relatedPages;
 
-// キャッシュオブジェクト: {"links1hop": {title: text, ...}, "links2hop": {...}, "projLinks": {...}}
-const cache = {
-  links1hop: {},
-  links2hop: {},
-  projLinks: {},
-};
+    links1hop = relatedPages.links1hop.map(({ title }) => ({
+      projectName,
+      title,
+    }));
+    links2hop = relatedPages.links2hop.map(({ title }) => ({
+      projectName,
+      title,
+    }));
+    const projLinks = data.relatedPages.projectLinks1hop.map(
+      ({ projectName, title }) => ({
+        projectName,
+        title,
+      })
+    );
 
-// 初回に全ページfetchしてキャッシュ
-(async function init() {
-  const dialog = ensureDialogExists();
+    // 全てのリンク先ページをfetchしてキャッシュ
+    cache = {
+      links1hop: {},
+      links2hop: {},
+      projLinks: {},
+    };
 
-  // 全てのlinksをfetch
-  await Promise.all([
-    ...links1hop.map(async (link) => {
-      cache.links1hop[link.title] = await fetchPage(link);
-    }),
-    ...links2hop.map(async (link) => {
-      cache.links2hop[link.title] = await fetchPage(link);
-    }),
-    ...projLinks.map(async (link) => {
-      cache.projLinks[link.title] = await fetchPage(link);
-    }),
-  ]);
+    await Promise.all([
+      ...links1hop.map(async (link) => {
+        cache.links1hop[link.title] = await fetchPage(link);
+      }),
+      ...links2hop.map(async (link) => {
+        cache.links2hop[link.title] = await fetchPage(link);
+      }),
+      ...projLinks.map(async (link) => {
+        cache.projLinks[link.title] = await fetchPage(link);
+      }),
+    ]);
 
-  // チェックボックスが変更されたら更新
-  document
-    .getElementById("cb1hop")
-    .addEventListener("change", updateTextareaContent);
-  document
-    .getElementById("cb2hop")
-    .addEventListener("change", updateTextareaContent);
-  document
-    .getElementById("cbProj")
-    .addEventListener("change", updateTextareaContent);
+    ensureDialogExists();
+    // イベントリスナー登録
+    document
+      .getElementById("cb1hop")
+      .addEventListener("change", updateTextareaContent);
+    document
+      .getElementById("cb2hop")
+      .addEventListener("change", updateTextareaContent);
+    document
+      .getElementById("cbProj")
+      .addEventListener("change", updateTextareaContent);
 
-  // 初回内容更新
+    initDone = true;
+  }
+
+  // 初回または再表示時に更新
   updateTextareaContent();
-  dialog.showModal();
-})();
+  ensureDialogExists().showModal();
+}
 
 function updateTextareaContent() {
   const cb1hop = document.getElementById("cb1hop").checked;
@@ -152,3 +160,9 @@ function updateTextareaContent() {
 
   document.getElementById("resultTextarea").value = resultPages.join("\n\n");
 }
+
+// ScrapboxのカスタムメニューにconcatPagesという項目を追加
+scrapbox.PageMenu.addItem({
+  title: "concatPages",
+  onClick: () => initAndShowDialog(),
+});
