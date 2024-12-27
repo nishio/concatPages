@@ -54,6 +54,17 @@ function ensureDialogExists() {
     labelProj.appendChild(document.createTextNode("proj"));
     dialog.appendChild(labelProj);
 
+    // Create label and checkbox for current page
+    const labelCurrent = document.createElement("label");
+    const cbCurrent = document.createElement("input");
+    cbCurrent.type = "checkbox";
+    cbCurrent.id = "cbCurrent";
+    cbCurrent.checked = true;
+    labelCurrent.appendChild(cbCurrent);
+    labelCurrent.appendChild(document.createTextNode("current"));
+    dialog.appendChild(labelCurrent);
+    dialog.appendChild(document.createTextNode(" "));
+
     dialog.appendChild(document.createElement("br"));
 
     const textarea = document.createElement("textarea");
@@ -122,6 +133,12 @@ async function initAndShowDialog() {
       }),
     ]);
 
+    // Fetch the current page content
+    const currentPageContent = await fetchPage({ projectName, title: scrapbox.Page.title });
+    
+    // Store in cache with a separate key
+    cache.currentPage = currentPageContent;
+
     ensureDialogExists();
     // イベントリスナー登録
     document
@@ -132,6 +149,9 @@ async function initAndShowDialog() {
       .addEventListener("change", updateTextareaContent);
     document
       .getElementById("cbProj")
+      .addEventListener("change", updateTextareaContent);
+    document
+      .getElementById("cbCurrent")
       .addEventListener("change", updateTextareaContent);
 
     initDone = true;
@@ -146,6 +166,7 @@ function updateTextareaContent() {
   const cb1hop = document.getElementById("cb1hop").checked;
   const cb2hop = document.getElementById("cb2hop").checked;
   const cbProj = document.getElementById("cbProj").checked;
+  const cbCurrent = document.getElementById("cbCurrent").checked;
 
   const resultPages = [];
   if (cb1hop) {
@@ -157,8 +178,17 @@ function updateTextareaContent() {
   if (cbProj) {
     resultPages.push(...Object.values(cache.projLinks));
   }
+  // Add current page content if checked
+  if (cbCurrent && cache.currentPage) {
+    resultPages.push(cache.currentPage);
+  }
 
-  document.getElementById("resultTextarea").value = resultPages.join("\n\n");
+  const content = resultPages.join("\n\n");
+  document.getElementById("resultTextarea").value = content;
+
+  // Copy to clipboard after updating
+  navigator.clipboard.writeText(content)
+    .catch((err) => console.error("Clipboard error: ", err));
 }
 
 // ScrapboxのカスタムメニューにconcatPagesという項目を追加
