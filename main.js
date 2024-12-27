@@ -25,6 +25,17 @@ function ensureDialogExists() {
     dialog.id = "resultDialog";
 
     // チェックボックス
+    // Create label and checkbox for current page
+    const labelCurrent = document.createElement("label");
+    const cbCurrent = document.createElement("input");
+    cbCurrent.type = "checkbox";
+    cbCurrent.id = "cbCurrent";
+    cbCurrent.checked = true;
+    labelCurrent.appendChild(cbCurrent);
+    labelCurrent.appendChild(document.createTextNode("current"));
+    dialog.appendChild(labelCurrent);
+    dialog.appendChild(document.createTextNode(" "));
+
     const label1hop = document.createElement("label");
     const cb1hop = document.createElement("input");
     cb1hop.type = "checkbox";
@@ -53,16 +64,6 @@ function ensureDialogExists() {
     labelProj.appendChild(cbProj);
     labelProj.appendChild(document.createTextNode("proj"));
     dialog.appendChild(labelProj);
-
-    // Create label and checkbox for current page
-    const labelCurrent = document.createElement("label");
-    const cbCurrent = document.createElement("input");
-    cbCurrent.type = "checkbox";
-    cbCurrent.id = "cbCurrent";
-    cbCurrent.checked = true;
-    labelCurrent.appendChild(cbCurrent);
-    labelCurrent.appendChild(document.createTextNode("current"));
-    dialog.appendChild(labelCurrent);
     dialog.appendChild(document.createTextNode(" "));
 
     dialog.appendChild(document.createElement("br"));
