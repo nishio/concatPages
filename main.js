@@ -108,7 +108,7 @@ async function initAndShowDialog() {
       projectName,
       title,
     }));
-    const projLinks = data.relatedPages.projectLinks1hop.map(
+    projLinks = data.relatedPages.projectLinks1hop.map(
       ({ projectName, title }) => ({
         projectName,
         title,
